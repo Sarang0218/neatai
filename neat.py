@@ -78,7 +78,7 @@ class Model:
         ######################
 
         self.fitness = 0
-        self.speciesID = 0
+        self.speciesID = None
         self.adjusted_F = 0
         #####################
 
@@ -246,6 +246,54 @@ class Model:
                 
                 node.layer += 1
 
+class Species:
+  def __init__(self, id):
+    self.id = id
+    self.sample = None
+    self.models = []
+  
+  def __str__(self):
+    return f"[{self.id}] Pop {len(self.models)}"
+  def set_sample(self, model):
+    model.speciesID = self.id
+    self.sample = model
+    self.models.append(model)
+  
+  def assign_species(self, models, threshold=3):
+    for model in models:
+      if model.speciesID != None: continue
+      if compdiff(model, self.sample) < threshold:
+        model.speciesID = self.id
+        self.models.append(model)
+  
+  def choose_sample(self):
+    sample = random.choice(self.models)
+    for model in self.models:
+      model.speciesID = None
+      
+    self.models = []
+    self.set_sample(sample)
+  
+  def gen0(self,models):
+    sample = random.choice(models)
+    sample.speciesID = self.id
+    self.set_sample(sample)
+    
+    
+  def crossover(self):
+    pass
+  
+  def newinit(self, models):
+    for model in models:
+      if model.speciesID == None:
+        self.set_sample(model)
+  
+    
+    
+    
+    
+
+
 def max_innov(conns):
   cmax = 0
   for conn in conns:
@@ -303,11 +351,63 @@ def compdiff(mod1, mod2, c1=1,c2=1,c3=0.4, debug=False):
   return CD
   
 
+  
+  
+    
+      
+    
+   
+def speciate(models, threshold=4, gen0=False):
+  
+    pool = []
+    i = 0
+    k = 0
+        
+    for spec in pool:
+      spec.choose_sample()
+      spec.assign_species(models, threshold)
+      
+    while None in [model.speciesID for model in models]:
+        k+=1
+        s = Species(k)
+        s.newinit(models)
+        s.assign_species(models, threshold)
+        pool.append(s)
+        #print("NEWSPEC", k)
+        
+    
+    
+    
+    
+
+    poolfitness = []
+    poolsum = 0
+    for species in pool:
+        species_fit_sum = sum(model.fitness for model in species.models)
+        poolfitness.append(species_fit_sum / len(species.models))
+        poolsum += species_fit_sum
+    #print(sum(len(species.models) for species in pool))
+  
+    glob_avg = poolsum / sum(len(species.models) for species in pool)
+    #print(poolsum,sum(len(species.models) for species in pool),glob_avg)
+    poolallowed = [round(fit / glob_avg * len(species.models), 0) for fit, species in zip(poolfitness, pool)]
+
+    return poolallowed
+
+    
+  
+  
+   
+  
+  
+    
+      
+# TESTING (feat. stupid shit)   
+
 class StupidConnection:
   def __init__(self, innov, weight=0):
     self.evolution = innov
     self.weight = weight
-
 class StupidModel:
   def __init__(self):
     self.connections = []
@@ -341,61 +441,7 @@ def testCD():
   
   print(compdiff(mod1,mod2, debug=True))
   
-  
-  
-  
-    
-      
-    
-   
-def speciate(models, threshold=4, gen0=False):
-    samples = []
-    pool = []
-
-    def assign_species(model, samples, pool):
-        for sample in samples:
-            if compdiff(sample, model) < threshold:
-                model.speciesID = sample.speciesID
-                pool[sample.speciesID - 1].append(model)
-                return True
-        return False
-
-    for model in models:
-        if gen0:
-            end_circuit = assign_species(model, samples, pool)
-            if not end_circuit:
-                model.speciesID = len(samples) + 1
-                samples.append(model)
-                pool.append([model])
-        else:
-            assigned = assign_species(model, samples, pool)
-            if not assigned:
-                model.speciesID = len(samples) + 1
-                samples.append(model)
-                pool.append([model])
-
-    poolfitness = []
-    poolsum = 0
-    for species in pool:
-        species_fit_sum = sum(model.fitness for model in species)
-        poolfitness.append(species_fit_sum / len(species))
-        poolsum += species_fit_sum
-
-    glob_avg = poolsum / sum(len(species) for species in pool)
-    poolallowed = [round(fit / glob_avg * len(species), 0) for fit, species in zip(poolfitness, pool)]
-
-    return poolallowed
-
-    
-  
-  
-  
-  
-  
-    
-      
-      
-    
+     
   
   
       
