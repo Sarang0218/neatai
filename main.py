@@ -62,14 +62,9 @@ visualizer.nodes = pop[-1].nodes
 visualizer.connections = pop[-1].connections
 visualizer.draw_neural_network()
 
-# print(neat.speciate(pop, threshold=1, gen0=True))
-# print([jk.speciesID for jk in pop])
-for mod in pop:
-    mod.speciesID += 1
-    
-tmod = neat.Model(inputN=2, outputN=1, hiddenN=1000, biasN=1, pConn=1)
-tmod.fitness = 3
-pop.append(tmod)
+
+firstpop = neat.speciate(pop, threshold=1, gen0=True)
+print(firstpop)
 
 # print([jk.speciesID for jk in pop])
 # print(sum(neat.speciate(pop, threshold=1, gen0=False)))

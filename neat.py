@@ -357,7 +357,7 @@ def compdiff(mod1, mod2, c1=1,c2=1,c3=0.4, debug=False):
       
     
    
-def speciate(models, threshold=4, gen0=False):
+def speciate(models, threshold=4):
   
     pool = []
     i = 0
